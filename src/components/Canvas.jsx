@@ -46,6 +46,37 @@ export default function Canvas() {
     ctxRef.current.closePath();
     setDibujo(false);
   };
+
+  // Eventos de pantalla tactil 
+  const getTouchPos = (touchEvent) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    return {
+      x: touchEvent.touches[0].clientX - rect.left,
+      y: touchEvent.touches[0].clientY - rect.top,
+    };
+  };
+
+  const startTouch = (e) => {
+    e.preventDefault(); // evita scroll mientras se dibuja
+    const pos = getTouchPos(e);
+    ctxRef.current.beginPath();
+    ctxRef.current.moveTo(pos.x, pos.y);
+    setDibujo(true);
+  };
+
+  const drawTouch = (e) => {
+    if (!dibujo) return;
+    e.preventDefault();
+    const pos = getTouchPos(e);
+    ctxRef.current.strokeStyle = color;
+    ctxRef.current.lineTo(pos.x, pos.y);
+    ctxRef.current.stroke();
+  };
+
+  const stopTouch = () => {
+    ctxRef.current.closePath();
+    setDibujo(false);
+  };
   // Para el boton de "limpiar canvas"
   const clearCanvas = () => {
     ctxRef.current.clearRect(
@@ -58,25 +89,34 @@ export default function Canvas() {
 
   return (
     <div className="flex flex-col items-center gap-2">
-    <div className="border-4 border-black rounded-lg shadow-lg">
-
-      <canvas
-        ref={canvasRef}
-        
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-      />
-    </div>
-      <div className="flex gap-2">
+      <div className="border-4 border-black rounded-lg shadow-lg">
+        <canvas
+          ref={canvasRef}
+          // Eventos de mouse
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          // Eventos táctiles
+          onTouchStart={startTouch}
+          onTouchMove={drawTouch}
+          onTouchEnd={stopTouch}
+        />
+      </div>
+      <div className="flex gap-2 mt-2">
         <input
           type="color"
           value={color}
           onChange={(e) => setColor(e.target.value)}
         />
-        <button onClick={clearCanvas}>🧹 Limpiar</button>
+        <button
+          onClick={clearCanvas}
+          className="px-3 py-1 bg-red-500 text-white rounded-lg shadow"
+        >
+          🧹 Limpiar
+        </button>
       </div>
     </div>
   );
+
 }
